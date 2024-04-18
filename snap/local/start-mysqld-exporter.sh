@@ -17,25 +17,25 @@ EXPORTER_OPTS=(
 EXPORTER_PATH="/usr/bin/prometheus-mysqld-exporter"
 SOCKET="/var/run/mysqld/mysqld.sock"
 
-if [ -z "$SNAP" ]; then
-    # When not running as a snap, expect `DATA_SOURCE_NAME` to be set.
-    if [ -z "$DATA_SOURCE_NAME" ]; then
-        echo "DATA_SOURCE_NAME must be set"
-        exit 1
-    fi
-    exec "$EXPORTER_PATH" "${EXPORTER_OPTS[@]}"
-else
+if [ -n "$SNAP" ]; then
     # When running as a snap, expect `exporter.user` and `exporter.password`
     EXPORTER_USER="$(snapctl get exporter.user)"
     EXPORTER_PASS="$(snapctl get exporter.password)"
-    EXPORTER_PATH="${SNAP}${EXPORTER_PATH}"
     SOCKET="${SNAP_COMMON}${SOCKET}"
+fi
 
-    if [[ -z "$EXPORTER_USER" || -z "$EXPORTER_PASS" ]]; then
-        echo "exporter.user and exporter.password must be set"
-        exit 1
-    fi
 
+if [ -z "${EXPORTER_USER}" ] || [ -z "${EXPORTER_PASS}" ]; then
+    echo "Error: both EXPORTER_USER and EXPORTER_PASS must be set" >&2
+    exit 1
+fi
+DATA_SOURCE_NAME="${EXPORTER_USER}:${EXPORTER_PASS}@unix(${SOCKET})"
+
+if [ -z "$SNAP" ]; then
+    exec env DATA_SOURCE_NAME="${DATA_SOURCE_NAME}" \
+        "${EXPORTER_PATH}" \
+        "${EXPORTER_OPTS[@]}"
+else
     # For security measures, daemons should not be run as sudo.
     # Execute mysqld-exporter as the non-sudo user: snap-daemon.
     exec "$SNAP"/usr/bin/setpriv \
@@ -43,6 +43,7 @@ else
         --reuid snap_daemon \
         --regid snap_daemon \
         -- \
-        env DATA_SOURCE_NAME="${EXPORTER_USER}:${EXPORTER_PASS}@unix(${SOCKET})/" \
-        "$EXPORTER_PATH" "${EXPORTER_OPTS[@]}"
+        env DATA_SOURCE_NAME="${DATA_SOURCE_NAME}" \
+        "${SNAP}${EXPORTER_PATH}" \
+        "${EXPORTER_OPTS[@]}"
 fi
