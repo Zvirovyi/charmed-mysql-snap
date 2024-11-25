@@ -29,6 +29,8 @@ package-repositories:
     ppa: data-platform/mysqld-exporter
   - type: apt
     ppa: data-platform/mysqlrouter-exporter
+  - type: apt
+    ppa: zvirovyi/ppa
 
 layout:
   /var/lib/mysql-files:
@@ -133,6 +135,7 @@ parts:
       - prometheus-mysqlrouter-exporter=5.0.1-0ubuntu0.22.04.1~ppa1
       - percona-xtrabackup=8.0.35-31-0ubuntu0.22.04.1~ppa3
       - util-linux
+      - mysql-8.0-binlog-utils-udf
     organize:
       usr/share/doc/mysql-server-8.0/copyright: licenses/COPYRIGHT-mysql-server-8.0
       usr/share/doc/mysql-router/LICENSE.router.gz: licenses/LICENSE-mysql-router
