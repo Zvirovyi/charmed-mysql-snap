@@ -79,8 +79,6 @@ apps:
       - network
   mysqlbinlog:
     command: usr/bin/mysqlbinlog
-    plugs:
-      - network
   mysqld:
     command: start-mysqld.sh
     daemon: simple
