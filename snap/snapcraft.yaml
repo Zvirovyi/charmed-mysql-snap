@@ -77,6 +77,10 @@ apps:
     command: usr/bin/mysql
     plugs:
       - network
+  mysqlbinlog:
+    command: usr/bin/mysqlbinlog
+    plugs:
+      - network
   mysqld:
     command: start-mysqld.sh
     daemon: simple
@@ -123,6 +127,16 @@ apps:
       - network-bind
   mysqlrouter-passwd:
     command: run-mysql-router-password.sh
+  mysql-pitr-helper:
+    command: usr/bin/mysql-pitr-helper
+    plugs:
+      - network
+  mysql-pitr-helper-collector:
+    command: start-mysql-pitr-helper-collector.sh
+    daemon: simple
+    install-mode: disable
+    plugs:
+      - network
 
 parts:
   packages-deb:
@@ -136,6 +150,7 @@ parts:
       - percona-xtrabackup=8.0.35-31-0ubuntu0.22.04.1~ppa3
       - util-linux
       - mysql-8.0-binlog-utils-udf
+      - mysql-pitr-helper
     organize:
       usr/share/doc/mysql-server-8.0/copyright: licenses/COPYRIGHT-mysql-server-8.0
       usr/share/doc/mysql-router/LICENSE.router.gz: licenses/LICENSE-mysql-router
